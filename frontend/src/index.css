@@ -1,0 +1,101 @@
+@font-face {
+    font-family: "DePixel";
+    src:
+        url("assets/fonts/depixel/DePixelHalbfett.ttf");
+    font-weight: normal;
+    font-size: normal;
+}
+
+body {
+    font-family: 'DePixel', 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    background-color: rgb(31, 31, 31);
+    color: white;
+    margin: 0px;
+}
+
+.navbar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-left: 15%;
+    padding-right: 15%;
+}
+
+.nav-item {
+    position: relative;
+    display: inline;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+.nav-link {
+    font-size: 20px;
+    text-decoration: none;
+    color: white;
+}
+
+.nav-link:hover {
+    color: rgb(255, 67, 67);
+}
+
+.nav-login {
+    margin-left: auto;
+}
+
+.content {
+    padding-left: 15%;
+    padding-right: 15%;
+}
+
+.title {
+    font-size: 75px;
+}
+
+.input-container {
+    margin: 5px;
+}
+
+.input-label {
+    width:max-content;
+}
+
+input {
+    background-color: rgb(53, 55, 165);
+    font-family: 'DePixel', 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    text-indent: 10px;
+    color: white;
+    width: 100%;
+    height: 35px;
+    margin: 3px;
+    border: none;
+    outline: solid 3px;
+    outline-color: white;
+    outline-offset: 3px;
+}
+
+input:focus {
+    outline-offset: 6px;
+    transition:
+        outline-offset 0.2s ease-in-out;
+}
+
+.login-container {
+    display: grid;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    gap: 15px;
+    grid-template-columns: 300px;
+}
+
+button {
+    color: white;
+    background:rgb(53, 55, 165);
+    font-family: 'DePixel', 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    padding: 10px;
+    border: none;
+}
+
+button:hover {
+    cursor: pointer;
+}

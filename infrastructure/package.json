@@ -1,0 +1,15 @@
+{
+  "name": "infrastructure",
+  "version": "1.0.0",
+  "description": "",
+  "license": "GPL-3.0",
+  "author": "Aidan Stoner",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cloudformation": "^3.840.0"
+  },
+  "type": "module"
+}
