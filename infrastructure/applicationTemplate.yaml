@@ -1,0 +1,245 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  AvailabilityZone:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Default: us-east-1a
+  DynamodbPrefixListID:
+    Type: String
+
+Resources:
+  # Network
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      Tags:
+        - Key: Project
+          Value: GameHosting
+
+  # Public subnet
+  VPCPublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone: !Ref AvailabilityZone
+      Tags:
+        - Key: Project
+          Value: GameHosting
+
+  VPCPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Project
+          Value: GameHosting
+
+  VPCPublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPCPublicRouteTable
+      SubnetId: !Ref VPCPublicSubnet
+
+  VPCInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Project
+          Value: GameHosting
+
+  VPCInternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref VPCInternetGateway
+      VpcId: !Ref VPC
+
+  VPCRouteInternetGateway:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref VPCPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref VPCInternetGateway
+
+  # Private subnet
+  VPCPrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Ref AvailabilityZone
+      Tags:
+        - Key: Project
+          Value: GameHosting
+
+  VPCPrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Project
+          Value: GameHosting
+
+  VPCPrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPCPrivateRouteTable
+      SubnetId: !Ref VPCPrivateSubnet
+
+  # Server
+  WebsiteServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      ImageId: ami-022bbd2ccaf21691f
+      InstanceType: t4g.medium
+      KeyName: !Ref WebsiteServerKeyPair
+      SecurityGroupIds:
+        - !Ref WebsiteServerSecurityGroup
+      SubnetId: !Ref VPCPublicSubnet
+      Tags:
+        - Key: Project
+          Value: GameHosting
+
+  WebsiteServerKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: GameHostingWebsiteServerKeyPair
+      KeyFormat: pem
+      KeyType: ed25519
+      Tags:
+        - Key: Project
+          Value: GameHosting
+
+  WebsiteServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: AllowHTTPSTraffic
+      GroupDescription: Allows HTTP (port 80) and HTTPS (port 443) traffic
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp
+          Description: HTTP Traffic
+        - CidrIp: 0.0.0.0/0
+          FromPort: 443
+          ToPort: 443
+          IpProtocol: tcp
+          Description: HTTPS Traffic
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: -1
+          Description: All Outbound Traffic
+      Tags:
+        - Key: Project
+          Value: GameHosting
+
+  # Endpoint for Login Table
+  LoginTableVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      RouteTableIds:
+        - !Ref VPCPrivateRouteTable
+      ServiceName: com.amazonaws.us-east-1.dynamodb
+      VpcEndpointType: Gateway
+      VpcId: !Ref VPC
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+            Resource:
+              - !GetAtt LoginTable.Arn
+
+  LoginFunctionVPCEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: AllowOutboundToLoginTable
+      GroupDescription: Allows outbound traffic to login table VPC endpoint
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          DestinationPrefixListId: !Ref DynamodbPrefixListID
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Project
+          Value: GameHosting
+
+  # # Function
+  # LoginFunction:
+  #   Type: AWS::Lambda::Function
+  #   Properties:
+  #     FunctionName: "LoginToGameHostingWebsite"
+  #     Description: "Function that queries LoginTable to check if login credentials are valid"
+  #     Architectures: 
+  #       - arm64
+  #     PackageType: Zip
+  #     Code:
+  #     Role: !Ref LoginFunctionRole
+  #     Runtime: python3.13
+  #     VpcConfig:
+  #       SubnetIds:
+  #         - !Ref VPCPrivateSubnet
+  #       SecurityGroupIds:
+  #         - !Ref LoginFunctionVPCEndpointSecurityGroup
+  #     Tags:
+  #       - Key: "Project"
+  #         Value: "GameHosting"
+
+  # LoginFunctionRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     RoleName: "GameHostingLoginFunctionRole"
+  #     Description: "Role for LoginFunction to grant permissions for LoginTable"
+  #     AssumeRolePolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Service:
+  #               - lambda.amazonaws.com
+  #           Action:
+  #             - sts:AssumeRole
+  #     Tags:
+  #       - Key: "Project"
+  #         Value: "GameHosting"
+
+  # LoginFunctionRolePolicy:
+  #   Type: AWS::IAM::RolePolicy
+  #   Properties:
+  #     PolicyName: "GameHostingLoginFunctionRolePolicy"
+  #     RoleName: !Ref LoginFunctionRole
+  #     PolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Effect: Allow
+  #           Action: dynamodb:GetItem
+  #           Resource: !Ref LoginTable
+
+  # Database
+  LoginTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: GameHostingLoginTable
+      AttributeDefinitions:
+        - AttributeName: Username
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Username
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      Tags:
+        - Key: Project
+          Value: GameHosting
