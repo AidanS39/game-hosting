@@ -7,6 +7,8 @@ Parameters:
     Default: us-east-1a
   DynamodbPrefixListID:
     Type: String
+  DevUserArn:
+    Type: String
 
 
 Resources:
@@ -139,6 +141,35 @@ Resources:
         - Key: Project
           Value: GameHosting
 
+  WebsiteServerRoleForFunctions:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "GameHostingWebsiteServerRoleForFunctions"
+      Description: "Role for Game Hosting website to invoke lambda functions"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+              AWS:
+                - !Ref DevUserArn
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: "GameHostingWebsiteServerRolePolicyForFunctions"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - !GetAtt LoginFunction.Arn
+                  - !GetAtt CreateLoginFunction.Arn
+        
+
   # Endpoint for Login Table
   LoginTableVPCEndpoint:
     Type: AWS::EC2::VPCEndpoint
@@ -220,7 +251,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: "GameHostingLoginFunctionRole"
-      Description: "Role for LoginFunction to grant permissions for LoginTable"
+      Description: "Role for login and create login functions to grant permissions for LoginTable"
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:

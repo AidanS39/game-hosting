@@ -10,7 +10,7 @@ def lambda_handler(event, context):
 
     if username is None or password is None:
         return {
-            "statusCode": 404,
+            "statusCode": 400,
             "error": "Missing username or password."
         }
 
@@ -31,5 +31,5 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 200,
-        "body": json.dumps(response)
+        "body": "Login successfully created."
     }

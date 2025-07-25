@@ -6,12 +6,11 @@ table_name = "GameHostingLoginTable"
 
 def lambda_handler(event, context):
     username = event.get("username")
-    password = event.get("password")
 
-    if username is None or password is None:
+    if username is None:
         return {
-            "statusCode": 404,
-            "error": "Missing username or password."
+            "statusCode": 400,
+            "error": "Missing username."
         }
 
     response = ddb_client.get_item(
@@ -23,7 +22,15 @@ def lambda_handler(event, context):
                     }
                 )
 
+    responsePassword = response.get('Item', {}).get('Password', {}).get('S')  
+
+    if responsePassword is None:
+        return {
+            "statusCode": 401,
+            "error": "Invalid username."
+        }
+
     return {
         "statusCode": 200,
-        "body": json.dumps(response)
+        "password": responsePassword
     }
