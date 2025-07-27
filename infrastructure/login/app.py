@@ -22,7 +22,8 @@ def lambda_handler(event, context):
                     }
                 )
 
-    responsePassword = response.get('Item', {}).get('Password', {}).get('S')  
+    responsePassword = response.get('Item', {}).get('Password', {}).get('S')
+    responseScope = response.get('Item', {}).get('Scope', {}).get('S', "")
 
     if responsePassword is None:
         return {
@@ -32,5 +33,6 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 200,
-        "password": responsePassword
+        "password": responsePassword,
+        "scope": responseScope
     }

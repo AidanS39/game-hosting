@@ -1,0 +1,7 @@
+POST http://localhost:3001/api/createLogin
+Content-Type: application/json
+
+{
+    "username": "testUsername",
+    "password": "testPassword"
+}
