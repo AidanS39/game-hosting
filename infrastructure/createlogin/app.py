@@ -18,8 +18,9 @@ def lambda_handler(event, context):
         response = ddb_client.put_item(
                         TableName=table_name,
                         Item={
-                            "Username":{"S":username},
-                            "Password":{"S":password}
+                            "Username"  :{"S":username},
+                            "Password"  :{"S":password},
+                            "Scope"     :{"S":"standard"},
                         },
                         ConditionExpression="attribute_not_exists(Username)"
                     )
