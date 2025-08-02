@@ -1,11 +1,12 @@
-import { useLocation } from "react-router"
+import { useAuth } from "../contexts/AuthContext.jsx"
+import Typewriter from "../utils/Typewriter.jsx"
 
 const Dashboard = () => {
-    const { username } = useLocation().state
+    const username = useAuth().username
 
     return (
         <div>
-            <h2>Welcome, {username}.</h2>
+            <Typewriter text={"Welcome, " + username} />
             <div>
                 
             </div>
