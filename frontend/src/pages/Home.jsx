@@ -6,6 +6,30 @@ const Home = () => {
     <>
       <h1 className="title">GameHoster</h1>
       <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
+      <h3>Server hosting for Minecraft</h3>
     </>
   )
 }

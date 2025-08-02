@@ -1,12 +1,16 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router"
 import LoginService from "../services/LoginService"
+import { useAuth, useSetAuthValues } from "../contexts/AuthContext"
 
 
 const Login = () => {
     const [statusMessage, setStatusMessage] = useState("")
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
+    
+    const auth = useAuth()
+    const setAuthValues = useSetAuthValues()
 
     let navigate = useNavigate()
 
@@ -25,17 +29,18 @@ const Login = () => {
             password
         })
         .then(response => {
-            navigate("/dashboard", { state: { username } })
+            setAuthValues(true, response.username, response.scope)
+            navigate("/dashboard")
         })
         .catch(error => {
             if (error.status === 401) {
                 setStatusMessage("Invalid username or password.")
             }
             else {
+                console.log(error)
                 setStatusMessage("Failed to Log in. Please try again later.")
             }
         })
-        
     }
 
     return (

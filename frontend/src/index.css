@@ -37,10 +37,35 @@ body {
 
 .nav-link:hover {
     color: rgb(255, 67, 67);
+    cursor: pointer;
 }
 
 .nav-login {
     margin-left: auto;
+}
+
+.nav-menu {
+    user-select: none;
+    position: absolute;
+    top: 40px;
+    width: 200px;
+    height: auto;
+    background-color: rgb(53, 55, 165);
+    border: 4px solid rgb(255, 255, 255);
+    display: grid;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-menu-link {
+    font-size: 15px;
+    text-decoration: none;
+    color: white;
+    margin: 8px;
+}
+.nav-menu-link:hover {
+    color: rgb(255, 67, 67);
+    cursor: pointer;
 }
 
 .content {
@@ -97,5 +122,6 @@ button {
 }
 
 button:hover {
+    background:rgb(74, 77, 233);
     cursor: pointer;
 }

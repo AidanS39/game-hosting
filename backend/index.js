@@ -6,6 +6,7 @@ const { LambdaClient, InvokeCommand } = require("@aws-sdk/client-lambda")
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
 const HttpError = require('./HttpError')
+const path = require('node:path')
 
 const saltRounds = 10
 
@@ -14,56 +15,52 @@ let refreshTokens = []
 const app = express()
 
 app.use(cors())
-app.use(express.static('dist'))
+app.use(express.static(path.join(__dirname, 'dist')))
 app.use(express.json())
 app.use(cookieParser())
 
 const authenticateToken = async (request, response, next) => {
     try {
         jwt.verify(request.cookies.accessToken, process.env.JWT_ACCESS_KEY, (accessTokenError, decodedAccessToken) => {
-            if (accessTokenError && accessTokenError.name == 'JsonWebTokenError') {
-                refreshTokens = refreshTokens.filter(token => token !== request.cookies.refreshToken)
+            if (accessTokenError) {
+                if (accessTokenError.name != 'TokenExpiredError' && accessTokenError.name != 'JsonWebTokenError') {
+                    refreshTokens = refreshTokens.filter(token => token !== request.cookies.refreshToken)
 
-                response.clearCookie('accessToken')
-                response.clearCookie('refreshToken')
-                throw new HttpError(accessTokenError.message, 403)
-            }
-            else if (accessTokenError && accessTokenError.name != 'TokenExpiredError') {
-                refreshTokens = refreshTokens.filter(token => token !== request.cookies.refreshToken)
-
-                response.clearCookie('accessToken')
-                response.clearCookie('refreshToken')
-                throw new HttpError(accessTokenError.message, 500)
-            }
-            else if (accessTokenError && accessTokenError.name == 'TokenExpiredError') {
-                if (!refreshTokens.includes(request.cookies.refreshToken)) {
                     response.clearCookie('accessToken')
                     response.clearCookie('refreshToken')
-                    throw new HttpError(accessTokenError.message, 403)
+                    throw new HttpError(accessTokenError.message, 500)
                 }
-                // refresh the access token
-                jwt.verify(request.cookies.refreshToken, process.env.JWT_REFRESH_KEY, async (refreshTokenError, decodedRefreshToken) => {
-                    if (refreshTokenError) {
-                        throw new HttpError(refreshTokenError.message, 403)
+                else { // access token is invalid or missing, try to refresh access token 
+                    if (!refreshTokens.includes(request.cookies.refreshToken)) {
+                        
+                        response.clearCookie('accessToken')
+                        response.clearCookie('refreshToken')
+                        throw new HttpError(accessTokenError.message, 403)
                     }
+                    // refresh the access token
+                    jwt.verify(request.cookies.refreshToken, process.env.JWT_REFRESH_KEY, async (refreshTokenError, decodedRefreshToken) => {
+                        if (refreshTokenError) {
+                            throw new HttpError(refreshTokenError.message, 403)
+                        }
 
-                    const newAccessToken = await jwt.sign({ 
-                        username: decodedRefreshToken.username,
-                        scope: decodedRefreshToken.scope
-                     }, process.env.JWT_ACCESS_KEY, { expiresIn: '30s'})
+                        const newAccessToken = await jwt.sign({ 
+                            username: decodedRefreshToken.username,
+                            scope: decodedRefreshToken.scope
+                        }, process.env.JWT_ACCESS_KEY, { expiresIn: '30s'})
 
-                    request.username = decodedRefreshToken.username
-                    request.scope = decodedRefreshToken.scope
-                    
-                    response.cookie('accessToken', newAccessToken, {
-                        maxAge: 30000,
-                        httpOnly: true,
-                        secure: true,
-                        sameSite: true
+                        request.username = decodedRefreshToken.username
+                        request.scope = decodedRefreshToken.scope
+                        
+                        response.cookie('accessToken', newAccessToken, {
+                            maxAge: 30000,
+                            httpOnly: true,
+                            secure: true,
+                            sameSite: true
+                        })
+
+                        next()
                     })
-
-                    next()
-                })
+                }
             }
             else {
                 request.username = decodedAccessToken.username
@@ -139,11 +136,23 @@ app.post('/api/login', async (request, response, next) => {
             sameSite: true
         })
 
-        return response.status(200).end()
+        return response.status(200).json({
+            authorized: true,
+            username: username,
+            scope: responsePayload.scope
+        })
     }
     catch (error) {
         next(error)
     }
+})
+
+app.get('/api/validate', authenticateToken, (request, response, next) => {
+    return response.status(200).json({
+        authorized: true,
+        username: request.username,
+        scope: request.scope
+    })
 })
 
 app.delete('/api/logout', (request, response, next) => {
@@ -205,11 +214,15 @@ app.use((error, request, response, next) => {
         console.log(error.message)
         return response.status(error.statusCode).end()
     }
-    console.log('unknown error handled')
     console.log(error)
     return response.status(500).end()
 })
 
-const PORT = process.env.PORT
+// catch all
+app.use((request, response, next) => {
+    response.status(404).sendFile(path.join(__dirname, 'dist', 'index.html'))
+})
+
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 
