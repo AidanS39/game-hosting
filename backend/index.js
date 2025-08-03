@@ -6,6 +6,7 @@ const { LambdaClient, InvokeCommand } = require("@aws-sdk/client-lambda")
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
 const HttpError = require('./HttpError')
+const isNullOrEmpty = require('./IsNullOrEmpty')
 const path = require('node:path')
 
 const saltRounds = 10
@@ -79,8 +80,8 @@ app.post('/api/login', async (request, response, next) => {
     const username = request.body.username
     const password = request.body.password
 
-    if (username == null || password == null) {
-        return response.status(401).end()
+    if (isNullOrEmpty(username) || isNullOrEmpty(password)) {
+        return response.status(400).end()
     }
 
     const client = new LambdaClient()
@@ -167,13 +168,12 @@ app.post('/api/createLogin', (request, response, next) => {
     const username = request.body.username
     const password = request.body.password
 
-    if (username == null || password == null) {
-        return response.status(401).end()
+    if (isNullOrEmpty(username) || isNullOrEmpty(password)) {
+        return response.status(400).end()
     }
 
     bcrypt.hash(password, saltRounds)
         .then(hashedPassword => {
-            console.log(hashedPassword)
             const client = new LambdaClient()
                 const input = {
                     FunctionName: "CreateLoginForGameHostingWebsite",
@@ -188,12 +188,13 @@ app.post('/api/createLogin', (request, response, next) => {
                 client.send(command)
                     .then(loginResponse => {
                         const parsedResponse = JSON.parse(Buffer.from(loginResponse.Payload).toString())
+                        console.log(parsedResponse)
                         const statusCode = parsedResponse.statusCode
                         return response.status(statusCode).end()
                     })
                     .catch(error => {
                         console.log(error)
-                        return response.status(401).end()
+                        return response.status(400).end()
                     })
         })
         .catch(error => {
