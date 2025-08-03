@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const baseURL = "/api/logout"
+const baseURL = "http://localhost:3001/api/logout"
 
 const deleteLogout = () => {
     const request = axios.delete(`${baseURL}`)

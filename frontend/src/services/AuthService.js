@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const baseURL = "/api/validate"
+const baseURL = "http://localhost:3001/api/validate"
 
 const getValidate = () => {
     const request = axios.get(`${baseURL}`)

@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate } from "react-router"
 import { useEffect, useRef, useState } from "react"
-import { useAuth, useSetAuthValues } from "../contexts/AuthContext"
+import { useAuth, useSetAuthValues, useAuthLoading } from "../contexts/AuthContext"
 import LogoutService from "../services/LogoutService"
 
 const Layout = () => {
@@ -26,6 +26,10 @@ const Layout = () => {
 
 const NavUser = () => {
     const [menuVisible, setMenuVisible] = useState(false)
+
+    const auth = useAuth()
+    const authLoading = useAuthLoading()
+
     const elementRef = useRef(null)
     
     useEffect(() => {
@@ -44,10 +48,11 @@ const NavUser = () => {
     const toggleMenuVisibility = () => {
         setMenuVisible(!menuVisible)
     }
-    
-    const auth = useAuth()
 
-    if (!auth.authorized) {
+    if (authLoading) {
+        return <a className="nav-link">Loading...</a>
+    }
+    else if (!auth.authorized) {
         return (
             <NavLink to="/login" className="nav-link">Login</NavLink>
         )
@@ -55,8 +60,8 @@ const NavUser = () => {
     else {
         return (
             <>
-                <a className="nav-link" onClick={toggleMenuVisibility}>{auth.username}</a>
                 <div ref={elementRef}>
+                    <a className="nav-link" onClick={toggleMenuVisibility}>{auth.username}</a>
                     {menuVisible && (
                         <NavUserMenu toggleVisibility={toggleMenuVisibility} />
                     )}
@@ -74,7 +79,6 @@ const NavUserMenu = ({ toggleVisibility }) => {
         toggleVisibility()
         LogoutService.deleteLogout()
             .then(status => {
-                console.log("THEN")
                 if (status != 204) {
                     console.log(status)
                     throw {
@@ -82,11 +86,9 @@ const NavUserMenu = ({ toggleVisibility }) => {
                         message: "Error occurred when logging out."
                     }
                 }
-                console.log("success")
                 navigate('/')
             })
             .catch(error => {
-                console.log("CATCH")
                 console.log(error)
                 navigate('/error', { 
                     state: {
