@@ -10,11 +10,12 @@ import Dashboard from './pages/Dashboard.jsx'
 import AuthRoute from './utils/AuthRoute.jsx'
 
 import AuthService from './services/AuthService.js'
-import { useSetAuthValues } from './contexts/AuthContext.jsx'
+import { useSetAuthValues, useSetAuthLoadingValue } from './contexts/AuthContext.jsx'
 
 const AppRoutes = () => {
 
     const setAuthValues = useSetAuthValues()
+    const setAuthLoadingValue = useSetAuthLoadingValue()
 
     useEffect(() => {
         AuthService.getValidate()
@@ -25,7 +26,12 @@ const AppRoutes = () => {
                 }
             })
             .catch(error => {
-                console.log(error)
+                if (error.status != 403) {
+                    console.log("Error occurred while initially authenticating.")
+                }
+            })
+            .finally(() => {
+                setAuthLoadingValue(false)
             })
     }, [])
 

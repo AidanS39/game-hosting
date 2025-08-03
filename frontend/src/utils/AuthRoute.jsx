@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
 import { Outlet, Navigate } from 'react-router-dom'
-import { useAuth, useSetAuthValues } from '../contexts/AuthContext'
-import AuthService from '../services/AuthService'
+import { useAuth, useSetAuthValues, useAuthLoading } from '../contexts/AuthContext'
 
 const AuthRoute = ({ scope }) => {
 
     const auth = useAuth()
+    const authLoading = useAuthLoading()
     
     const roles = auth.scope.split(" ")
     let inScope = false
@@ -19,7 +19,10 @@ const AuthRoute = ({ scope }) => {
             }
         })
     }
-    
+
+    if (authLoading) {
+        return <></>
+    }
     return (auth.authorized && inScope) ? <Outlet /> : <Navigate to='/login' />
 }
 

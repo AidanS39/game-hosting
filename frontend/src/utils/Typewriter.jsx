@@ -5,9 +5,13 @@ const Typewriter = ({ text }) => {
 
     useEffect(() => {
         if (displayText.length < text.length) {
+            let spaceDelay = 1
+            if (text.charAt(displayText.length) == ' ') {
+                spaceDelay = 2
+            }
             const timerId = setTimeout(() => {
                 setDisplayText(text.substring(0, displayText.length + 1))
-            }, 100)
+            }, 100 * spaceDelay)
             return () => {
                 clearTimeout(timerId);
             };
