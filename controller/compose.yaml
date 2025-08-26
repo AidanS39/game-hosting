@@ -1,0 +1,17 @@
+
+
+services:
+  db:
+    container_name: "game-hosting-db"
+    image: postgres
+    ports: 
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+
+volumes:
+  db-data:
+    name: "game-hosting-db-data"
+

@@ -141,3 +141,5 @@ vite.config.ts.timestamp-*
 infrastructure/samconfig.toml
 
 .venv
+
+__pycache__
