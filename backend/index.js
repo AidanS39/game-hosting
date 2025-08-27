@@ -5,8 +5,8 @@ const bcrypt = require('bcrypt')
 const { LambdaClient, InvokeCommand } = require("@aws-sdk/client-lambda")
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
-const HttpError = require('./HttpError')
-const isNullOrEmpty = require('./IsNullOrEmpty')
+const HttpError = require('./util/HttpError')
+const isNullOrEmpty = require('./util/IsNullOrEmpty')
 const path = require('node:path')
 
 const saltRounds = 10
