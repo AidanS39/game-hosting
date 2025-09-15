@@ -12,6 +12,8 @@
     "build:ui": "cd ../frontend; npm run build; cp -r dist ../backend; rm -r dist; cd ../backend;"
   },
   "dependencies": {
+    "@aws-sdk/client-ec2": "^3.875.0",
+    "@aws-sdk/client-ecs": "^3.876.0",
     "@aws-sdk/client-lambda": "^3.848.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
@@ -19,6 +21,7 @@
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "pg": "^8.16.3"
   }
 }
