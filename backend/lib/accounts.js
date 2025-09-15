@@ -1,10 +1,9 @@
-require("dotenv").config({ path: '../.env'})
-
 const { EC2Client, CreateVolumeCommand, EC2ServiceException } = require("@aws-sdk/client-ec2")
 const { Client } = require("pg")
 
 const { Server } = require("./servers")
 const HttpError = require("../util/HttpError")
+const isNullOrEmpty = require("../util/IsNullOrEmpty")
 
 const dbInfo = {
     user: process.env.DB_USER,
@@ -28,7 +27,7 @@ class Account {
 
         // 1. create ebs volume
         const volumeId = await createEBSVolume()
-        console.log(volumeId)
+        console.log("volumeId: " + volumeId)
         
         // 2. add server entry to db
         const client = new Client(dbInfo)
@@ -74,6 +73,9 @@ async function createAccount(username) {
         id = response.rows[0].id
     }
     catch (error) {
+        if (error.code == '23505') {
+            throw new HttpError("Username already exists.", 422)
+        }
         throw new HttpError("Error occurred when inserting account into database: " + error, 500)
     }
     await client.end()
@@ -90,24 +92,24 @@ async function createEBSVolume() {
             AvailabilityZone: "us-east-1a",
             VolumeType: "gp3",
             Size: 20,
-            DryRun: true
+            DryRun: false
         }
     )
 
     try {
         const response = await client.send(command)
-        if (response.state == "error") {
+        if (response.state == "error" || isNullOrEmpty(response.VolumeId)) {
             throw new EC2ServiceException()
         }
         else {
-            return response.volumeId
+            console.log("response: ")
+            console.log(response)
+            return response.VolumeId
         }
     }
     catch (error) {
         if (error instanceof EC2ServiceException) {
-            //throw new HttpError("EC2ServiceException Error occurred while creating EBS volume: " + error.message, 500)
-            console.log("EC2ServiceException Error occurred while creating EBS volume: " + error.message)
-            return -1
+            throw new HttpError("EC2ServiceException Error occurred while creating EBS volume: " + error.message, 500)
         }
         else {
             throw new HttpError("Error occurred while creating EBS volume: " + error.message, 500)

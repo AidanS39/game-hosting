@@ -1,5 +1,12 @@
-const { Account } = require("../lib/accounts")
+require("dotenv").config({ path: '../.env'})
 
-const account = new Account(20, "testName")
-const server = account.createServer("testName", 2048, 8196, "PAPER", "LATEST")
-console.log(server)
+const { Account, createAccount, createServer } = require("../lib/accounts")
+
+async function test_createServer() {
+    const account = await createAccount("testName")
+    const server = await account.createServer("testName", 2048, 8196, "PAPER", "LATEST")
+    console.log("server: ")
+    console.log(server)
+}
+
+test_createServer()

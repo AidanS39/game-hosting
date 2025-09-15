@@ -5,6 +5,8 @@ const bcrypt = require('bcrypt')
 const { LambdaClient, InvokeCommand } = require("@aws-sdk/client-lambda")
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
+
+const { Account, createAccount, getAccount } = require('./lib/accounts')
 const HttpError = require('./util/HttpError')
 const isNullOrEmpty = require('./util/IsNullOrEmpty')
 const path = require('node:path')
@@ -164,43 +166,40 @@ app.delete('/api/logout', (request, response, next) => {
     response.status(204).end()
 })
 
-app.post('/api/createLogin', (request, response, next) => {
+app.post('/api/createLogin', async (request, response, next) => {
     const username = request.body.username
     const password = request.body.password
 
-    if (isNullOrEmpty(username) || isNullOrEmpty(password)) {
-        return response.status(400).end()
+    try {
+        if (isNullOrEmpty(username) || isNullOrEmpty(password)) {
+            throw new HttpError("Missing username or password.", 400)
+        }
+
+        newAccount = await createAccount(username)
+        const id = newAccount.id
+        const hashedPassword = await bcrypt.hash(password, saltRounds)
+        const client = new LambdaClient()
+        const command = new InvokeCommand({
+            FunctionName: "CreateLoginForGameHostingWebsite",
+            InvocationType: "RequestResponse",
+            Payload: JSON.stringify({
+                username: username,
+                password: hashedPassword,
+                id: id
+            })
+        })
+        const loginResponse = await client.send(command)
+        const parsedResponse = JSON.parse(Buffer.from(loginResponse.Payload).toString())
+        console.log(parsedResponse)
+
+        if (parsedResponse.statusCode != 200) {
+            throw new HttpError(parsedResponse.error, parsedResponse.statusCode)
+        }
+        return response.status(200).end()
     }
-
-    bcrypt.hash(password, saltRounds)
-        .then(hashedPassword => {
-            const client = new LambdaClient()
-                const input = {
-                    FunctionName: "CreateLoginForGameHostingWebsite",
-                    InvocationType: "RequestResponse",
-                    Payload: JSON.stringify({
-                        username: username,
-                        password: hashedPassword
-                    })
-                }
-
-                const command = new InvokeCommand(input)
-                client.send(command)
-                    .then(loginResponse => {
-                        const parsedResponse = JSON.parse(Buffer.from(loginResponse.Payload).toString())
-                        console.log(parsedResponse)
-                        const statusCode = parsedResponse.statusCode
-                        return response.status(statusCode).end()
-                    })
-                    .catch(error => {
-                        console.log(error)
-                        return response.status(400).end()
-                    })
-        })
-        .catch(error => {
-            console.log(error)
-            return response.status(401).end()
-        })
+    catch (error) {
+        next(error)
+    }
 })
 
 app.get('/api/dashboard', authenticateToken, (request, response, next) => {

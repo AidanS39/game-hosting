@@ -11,6 +11,7 @@ Parameters:
     Type: String
 
 
+
 Resources:
   # Network
   VPC:
@@ -20,6 +21,8 @@ Resources:
       Tags:
         - Key: Project
           Value: GameHosting
+        - Key: Name
+          Value: GameHostingVPC
 
   # Public subnet
   VPCPublicSubnet:
@@ -31,6 +34,8 @@ Resources:
       Tags:
         - Key: Project
           Value: GameHosting
+        - Key: Name
+          Value: GameHostingPublicSubnet
 
   VPCPublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -39,6 +44,8 @@ Resources:
       Tags:
         - Key: Project
           Value: GameHosting
+        - Key: Name
+          Value: GameHostingPublicRouteTable
 
   VPCPublicSubnetRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -76,6 +83,8 @@ Resources:
       Tags:
         - Key: Project
           Value: GameHosting
+        - Key: Name
+          Value: GameHostingPrivateSubnet
 
   VPCPrivateRouteTable:
     Type: AWS::EC2::RouteTable
@@ -84,6 +93,8 @@ Resources:
       Tags:
         - Key: Project
           Value: GameHosting
+        - Key: Name
+          Value: GameHostingPrivateRouteTable
 
   VPCPrivateSubnetRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -105,6 +116,8 @@ Resources:
       Tags:
         - Key: Project
           Value: GameHosting
+        - Key: Name
+          Value: GameHostingWebsiteServerKeyPair
 
   WebsiteServerKeyPair:
     Type: AWS::EC2::KeyPair
@@ -302,3 +315,68 @@ Resources:
       Tags:
         - Key: Project
           Value: GameHosting
+
+  # ECS
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: "GameHostingCluster"
+
+  ServerTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Cpu: '2048'
+      Memory: '8192'
+      NetworkMode: awsvpc
+      # ExecutionRoleArn: # TODO: Define execution role
+      ContainerDefinitions:
+      - Image: itzg/minecraft-server:latest
+        Name: ServerContainer
+        Essential: true
+        MountPoints:
+        - ContainerPath: /data
+          SourceVolume: ServerVolume
+        PortMappings:
+        - Name: papertesthameportmapping
+          ContainerPort: 25565
+          Protocol: tcp
+        # LogConfiguration:
+        #   LogDriver: awslogs
+        #   Options:
+        #     mode: non-blocking
+        #     awslogs-group: /ecs/server-task-definition
+        #     awslogs-region: us-east-1
+        #     awslogs-stream-prefix: ecs
+        Environment:
+        - Name: EULA
+          Value: 'TRUE'
+        - Name: TYPE
+          Value: PAPER
+      Volumes:
+      - Name: ServerVolume
+        Host:
+          SourcePath: /server
+        ConfiguredAtLaunch: false
+
+  GameServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "GameServerSecurityGroup"
+      GroupDescription: "Security group for user minecraft server to accept only game-specific traffic"
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: "tcp"
+          FromPort: 25565
+          ToPort: 25565
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: "tcp"
+          FromPort: 25565
+          ToPort: 25565
+      Tags:
+        - Key: Project
+          Value: GameHosting
+      VpcId: !Ref VPC
+
+  
+
