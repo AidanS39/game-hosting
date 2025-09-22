@@ -100,8 +100,8 @@ const Login = () => {
 
     return (
         <div>
-            <h1>{isCreate ? "Create an Account" : "Login"}</h1>
-            <div>
+            <h1 className="text-[50px]">{isCreate ? "Create an Account" : "Login"}</h1>
+            <div className="my-5">
                 <p>{statusMessage}</p>
                 {isCreate ? 
                 <CreateAccountForm

@@ -17,7 +17,6 @@ class Account {
     constructor(id, username) {
         this.id = id
         this.username = username
-        this.servers = []
     }
 
     // creates a server
@@ -48,12 +47,38 @@ class Account {
         catch (error) {
             console.log("Error occurred when inserting server into database: " + error)
         }
-        await client.end()
+        finally {
+            await client.end()
+        }
 
-        const newServer = new Server(id, name, cpu, memory, type, version, volumeId, this.id)
-        this.servers.push(newServer)
-
+        const newServer = new Server(id, name, cpu, memory, type, version, volumeId, this.id, null)
         return newServer
+    }
+
+    async getServers() {
+        const client = new Client(dbInfo)
+        await client.connect()
+
+        let rows;
+        try {
+            const query = {
+                text: `SELECT servers.id, servers.name, servers.cpu, servers.memory, servers.type, servers.version, servers.volume_id, servers.account_id, servers.instance_id
+                    FROM servers
+                    JOIN accounts
+                    ON servers.account_id = accounts.id
+                    WHERE accounts.id = $1`,
+                values: [this.id]
+            }
+            const response = await client.query(query)
+            rows = response.rows
+        }
+        catch (error) {
+            throw new HttpError("Error occurred when retrieving servers from database: " + error, 500)
+        }
+        await client.end()
+        
+        const servers = rows.map(row => new Server(row.id, row.name, row.cpu, row.memory, row.type, row.version, row.volume_id, row.account_id, row.instance_id))
+        return servers
     }
 }
 
@@ -78,7 +103,9 @@ async function createAccount(username) {
         }
         throw new HttpError("Error occurred when inserting account into database: " + error, 500)
     }
-    await client.end()
+    finally {
+        await client.end()
+    }
 
     const newAccount = new Account(id, username)
 
@@ -133,15 +160,69 @@ async function getAccount(id) {
         row = response.rows[0]
     }
     catch (error) {
-        throw new HttpError("Error occurred when inserting account into database: " + error, 500)
+        throw new HttpError("Error occurred when retrieving account from database: " + error, 500)
+    }
+    await client.end()
+
+    const account = new Account(row.id, row.username)
+    return account
+}
+
+async function getAccountByUsername(username) {
+    const client = new Client(dbInfo)
+    await client.connect()
+
+    let row;
+    try {
+        const query = {
+            text: `SELECT id, username
+                   FROM accounts
+                   WHERE username = $1`,
+            values: [username]
+        }
+        const response = await client.query(query)
+        row = response.rows[0]
+    }
+    catch (error) {
+        throw new HttpError("Error occurred when retrieving account from database: " + error, 500)
     }
     await client.end()
     
-    return row
+    const account = new Account(row.id, row.username)
+    return account
+}
+
+async function getServersByUsername(username) {
+    const client = new Client(dbInfo)
+    await client.connect()
+
+    let row;
+    try {
+        const query = {
+            text: `SELECT servers.id, servers.name, servers.cpu, servers.memory, servers.type, servers.version, servers.volume_id, servers.account_id, servers.instance_id
+                   FROM servers
+                   JOIN accounts
+                   ON servers.account_id = accounts.id
+                   WHERE accounts.username = $1`,
+            values: [username]
+        }
+        const response = await client.query(query)
+        rows = response.rows
+        console.log(rows)
+    }
+    catch (error) {
+        throw new HttpError("Error occurred when retrieving servers from database: " + error, 500)
+    }
+    await client.end()
+    
+    const servers = rows.map(row => new Server(row.id, row.name, row.cpu, row.memory, row.type, row.version, row.volume_id, row.account_id, row.instance_id))
+    return servers
 }
 
 module.exports = {
     Account: Account,
     createAccount: createAccount,
-    getAccount: getAccount
+    getAccount: getAccount,
+    getAccountByUsername: getAccountByUsername,
+    getServersByUsername: getServersByUsername
 }

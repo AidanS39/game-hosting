@@ -19,7 +19,7 @@ const Typewriter = ({ text }) => {
     }, [displayText])
 
     return (
-        <h2>{displayText}</h2>
+        <h1 className="text-[30px]">{displayText}</h1>
     )
 }
 

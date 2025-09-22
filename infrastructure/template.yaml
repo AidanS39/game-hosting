@@ -322,7 +322,7 @@ Resources:
     Properties:
       ClusterName: "GameHostingCluster"
 
-  ServerTaskDefinition:
+  GameServerTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
       Cpu: '2048'
@@ -378,5 +378,29 @@ Resources:
           Value: GameHosting
       VpcId: !Ref VPC
 
-  
 
+
+Outputs:
+  GameHostingVPC:
+    Description: "ID of the GameHosting VPC"
+    Value: !Ref VPC
+
+  GameHostingPublicSubnet:
+    Description: "ID of the GameHosting Public Subnet"
+    Value: !Ref VPCPublicSubnet
+
+  GameHostingPrivateSubnet:
+    Description: "ID of the GameHosting Private Subnet"
+    Value: !Ref VPCPrivateSubnet
+
+  GameHostingCluster:
+    Description: "ARN of the GameHosting ECS Cluster"
+    Value: !GetAtt Cluster.Arn
+
+  GameHostingGameServerTaskDefinition:
+    Description: "ARN of the GameHosting Game Server Task Definition"
+    Value: !Ref GameServerTaskDefinition
+
+  GameHostingGameServerSecurityGroup:
+    Description: "ID of the GameHosting Game Server Security Group"
+    Value: !Ref GameServerSecurityGroup

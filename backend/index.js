@@ -1,4 +1,5 @@
 require('dotenv').config()
+require('dotenv').config({ path: '.env.resources' })
 const express = require('express')
 const cors = require('cors')
 const bcrypt = require('bcrypt')

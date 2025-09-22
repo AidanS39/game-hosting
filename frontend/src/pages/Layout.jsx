@@ -6,18 +6,18 @@ import LogoutService from "../services/LogoutService"
 const Layout = () => {
     return (
         <>
-            <nav className="navbar">
-                <div className="nav-item">
-                    <NavLink to="/" className="nav-link">Home</NavLink>
+            <nav className="sticky top-0 flex py-[15px] px-[15%]">
+                <div className="relative inline mx-[20px]">
+                    <NavLink to="/" className="text-[20px] no-underline text-white hover:text-red-600 hover:cursor-pointer">Home</NavLink>
                 </div>
-                <div className="nav-item">
-                    <NavLink to="/about" className="nav-link">About</NavLink>
+                <div className="relative inline mx-[20px]">
+                    <NavLink to="/about" className="text-[20px] no-underline text-white hover:text-red-600 hover:cursor-pointer">About</NavLink>
                 </div>
-                <div className="nav-item nav-login">
+                <div className="relative inline mx-[20px] ml-auto">
                     <NavUser />
                 </div>
             </nav>
-            <div className="content">
+            <div className="px-[15%]">
                 <Outlet />
             </div>
         </>
@@ -50,18 +50,18 @@ const NavUser = () => {
     }
 
     if (authLoading) {
-        return <a className="nav-link">Loading...</a>
+        return <a className="text-[20px] no-underline text-white hover:text-red-600 hover:cursor-pointer">Loading...</a>
     }
     else if (!auth.authorized) {
         return (
-            <NavLink to="/login" className="nav-link">Login</NavLink>
+            <NavLink to="/login" className="text-[20px] no-underline text-white hover:text-red-600 hover:cursor-pointer">Login</NavLink>
         )
     }
     else {
         return (
             <>
                 <div ref={elementRef}>
-                    <a className="nav-link" onClick={toggleMenuVisibility}>{auth.username}</a>
+                    <a className="text-[20px] no-underline text-white hover:text-red-600 hover:cursor-pointer" onClick={toggleMenuVisibility}>{auth.username}</a>
                     {menuVisible && (
                         <NavUserMenu toggleVisibility={toggleMenuVisibility} />
                     )}
@@ -103,9 +103,9 @@ const NavUserMenu = ({ toggleVisibility }) => {
             })
     }
     return (
-        <div className="nav-menu">
-            <NavLink to="/dashboard" className="nav-menu-link" onClick={toggleVisibility}>Dashboard</NavLink>
-            <a className="nav-menu-link" onClick={handleLogout}>Logout</a>
+        <div className="select-none absolute top-[40px] w-[200px] h-auto bg-blue-800 border-[4px] grid items-center justify-center">
+            <NavLink to="/dashboard" className="text-[15px] no-underline text-white m-2 hover:text-red-600 hover:cursor-pointer" onClick={toggleVisibility}>Dashboard</NavLink>
+            <a className="text-[15px] no-underline text-white m-2 hover:text-red-600 hover:cursor-pointer" onClick={handleLogout}>Logout</a>
         </div>
     )
 }

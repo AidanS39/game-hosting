@@ -1,6 +1,6 @@
-require("dotenv").config({ path: '../.env'})
+require("dotenv").config({ path: '../../.env'})
 
-const { Account, createAccount, createServer } = require("../lib/accounts")
+const { Account, createAccount, createServer } = require("../../lib/accounts")
 
 async function test_createServer() {
     const account = await createAccount("testName")

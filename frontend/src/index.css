@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 @font-face {
     font-family: "DePixel";
     src:
@@ -11,61 +13,6 @@ body {
     background-color: rgb(31, 31, 31);
     color: white;
     margin: 0px;
-}
-
-.navbar {
-    position: sticky;
-    top: 0;
-    display: flex;
-    padding-top: 15px;
-    padding-bottom: 15px;
-    padding-left: 15%;
-    padding-right: 15%;
-}
-
-.nav-item {
-    position: relative;
-    display: inline;
-    margin-left: 20px;
-    margin-right: 20px;
-}
-.nav-link {
-    font-size: 20px;
-    text-decoration: none;
-    color: white;
-}
-
-.nav-link:hover {
-    color: rgb(255, 67, 67);
-    cursor: pointer;
-}
-
-.nav-login {
-    margin-left: auto;
-}
-
-.nav-menu {
-    user-select: none;
-    position: absolute;
-    top: 40px;
-    width: 200px;
-    height: auto;
-    background-color: rgb(53, 55, 165);
-    border: 4px solid rgb(255, 255, 255);
-    display: grid;
-    align-items: center;
-    justify-content: center;
-}
-
-.nav-menu-link {
-    font-size: 15px;
-    text-decoration: none;
-    color: white;
-    margin: 8px;
-}
-.nav-menu-link:hover {
-    color: rgb(255, 67, 67);
-    cursor: pointer;
 }
 
 .content {
@@ -131,15 +78,17 @@ button:hover {
 .dashboard-container {
     display: grid;
     grid-template-columns: 50% 50%;
-    gap: 10px;
     width: 100%;
 }
 
 .dashboard-section {
-    margin-top: 5px;
-    margin-bottom: 5px;
+    padding: 5px;
+    margin: 10px;
     border: none;
     outline: solid 3px;
     outline-color: white;
-    outline-offset: 3px;
+}
+
+.dashboard-item-inline {
+    display: inline-block
 }
